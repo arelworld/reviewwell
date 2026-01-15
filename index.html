@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Pro Mastery Assessment</title>
+    <style>
+        :root { 
+            --primary:#2563eb; --dark:#0f172a; --gold:#fbbf24; 
+            --bg:#f1f5f9; --success:#22c55e; --danger:#ef4444; 
+        }
+
+        body { font-family:'Segoe UI',sans-serif; background:var(--bg); margin:0; padding-top:80px; }
+
+        header {
+            position:fixed; top:0; width:100%; height:60px;
+            background:var(--dark); color:white;
+            display:flex; justify-content:space-around; align-items:center; z-index:1000;
+        }
+
+        .container { max-width:900px; margin:0 auto; padding:20px; }
+        .card { background:white; padding:30px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; }
+        .hidden { display:none!important; }
+
+        .opt-btn {
+            display:block; width:100%; text-align:left; padding:15px; margin:10px 0;
+            border:2px solid #e2e8f0; border-radius:10px; cursor:pointer; background:white;
+            transition: 0.2s;
+        }
+        .selected { border-color:var(--primary); background:#eff6ff; }
+        .correct { background:#dcfce7!important; border-color:var(--success)!important; color:#166534; }
+        .wrong { background:#fee2e2!important; border-color:var(--danger)!important; color:#991b1b; }
+        
+        .main-btn {
+            background:var(--primary); color:white; border:none; padding:15px 30px;
+            border-radius:8px; cursor:pointer; width:100%; font-size:1.2rem; font-weight:bold;
+        }
+
+        /* SMALL LANDSCAPE CERTIFICATE PREVIEW */
+        #certificate-preview {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1.4 / 1;
+            margin: 10px auto;
+            border: 8px double #333;
+            padding: 15px;
+            background: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+            background-image: radial-gradient(circle, #fff 0%, #f9f9f9 100%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            container-type: inline-size;
+        }
+
+        #certificate-preview p { margin: 2px 0; font-size: 3.5cqw; color: #444; }
+        #certificate-preview .cert-name {
+            font-size: 8cqw; 
+            color: var(--primary);
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            border-bottom: 1px solid #333;
+            display: inline-block;
+            margin: 5px 0;
+            padding: 0 10px;
+        }
+        #certificate-preview .cert-rank {
+            color: var(--gold);
+            font-size: 6cqw;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* HIDDEN FULL-SIZE CERTIFICATE FOR PDF */
+        #certificate-for-pdf {
+            width: 1056px; 
+            height: 816px;
+            background: white;
+            text-align: center;
+            display: none; 
+            border: 30px double #333;
+            padding: 60px;
+            box-sizing: border-box;
+            background-image: radial-gradient(circle, #fff 0%, #f9f9f9 100%);
+            position: absolute;
+            left: -9999px;
+        }
+.expl-box {
+    padding: 15px;
+    background: #f0f9ff;
+    margin-top: 10px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.expl-title { font-weight: bold; color: var(--primary); display: block; margin-bottom: 5px; }
+        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .analysis-card { padding: 15px; border-radius: 8px; border-left: 5px solid #ccc; background: #f9f9f9; }
+        .status-pass { border-left-color: var(--success); }
+        .status-fail { border-left-color: var(--danger); }
+
+        .pdf-btn { background: #dc2626 !important; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<header id="top-bar" class="hidden">
+    <div>👤 <span id="nav-user">User</span></div>
+    <div>🏆 Score: <span id="nav-score">0</span></div>
+</header>
+
+<div class="container">
+    <div id="auth-view" class="card">
+        <h1>English Pro Assessment</h1>
+        <p>Complete 200 questions to earn your Professional Certification.</p>
+        <input type="text" id="username-input" placeholder="Enter Your Full Name" style="width:100%;padding:15px;margin-bottom:15px;border-radius:8px;border:1px solid #ccc; font-size:1.1rem; box-sizing: border-box;">
+        <button class="main-btn" onclick="startApp()">Begin Assessment</button>
+    </div>
+
+    <div id="mode-view" class="hidden card">
+        <h2>Select Test Mode</h2>
+        <button class="opt-btn" onclick="startQuiz('immediate')">🚀 Immediate Feedback (Learn as you go)</button>
+        <button class="opt-btn" onclick="startQuiz('exam')">📝 Exam Mode (Results at the end)</button>
+    </div>
+
+    <div id="quiz-view" class="hidden">
+        <div id="questions-area"></div>
+        <button id="finish-btn" class="main-btn" onclick="showFinalResult()" style="margin-top:20px;">Submit & Generate Certificate</button>
+    </div>
+
+    <div id="result-view" class="hidden">
+        <div class="card" style="text-align: center;">
+            <h2 style="color: var(--success);">Congratulations!</h2>
+            <p>You have completed the Professional English Assessment.</p>
+            
+            <div id="certificate-preview">
+                <p style="letter-spacing: 5px; font-weight: bold;">CERTIFICATE OF COMPLETION</p>
+                <p>This is to certify that</p>
+                <div class="cert-name" id="display-name-preview">User Name</div>
+                <p>has demonstrated mastery in</p>
+                <p style="font-weight: bold;">Advanced English Grammar</p>
+                <div class="cert-rank" id="display-rank-preview">ENGLISH PRO</div>
+                <p>Date: <span id="display-date-preview"></span></p>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="main-btn pdf-btn" onclick="generatePDF()" style="width: auto;">📄 Download PDF</button>
+                <button class="opt-btn" style="width: auto; margin:0;" onclick="location.reload()">Restart</button>
+            </div>
+        </div>
+
+        <div id="analysis-page" class="card">
+            <h2>📊 Performance Report</h2>
+            <div id="analysis-container" class="analysis-grid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="certificate-for-pdf">
+    <p style="letter-spacing: 12px; font-weight: bold; font-size: 1.5rem; color: #333;">CERTIFICATE OF COMPLETION</p>
+    <div style="margin: 40px 0;">
+        <p style="font-size: 1.8rem;">This is to certify that</p>
+        <div style="font-size: 4rem; color: #2563eb; font-family: 'Times New Roman', serif; font-style: italic; border-bottom: 4px solid #333; display: inline-block; margin: 25px 0; padding: 0 30px;" id="display-name-pdf">Name</div>
+        <p style="font-size: 1.8rem;">has successfully demonstrated mastery in</p>
+        <p style="font-size: 2.2rem; font-weight: bold; margin: 15px 0;">Advanced English Grammar & Fluency</p>
+        <p style="font-size: 1.5rem;">achieving the rank of</p>
+        <div style="color: #fbbf24; font-size: 3.5rem; font-weight: bold; text-transform: uppercase;" id="display-rank-pdf">ENGLISH PRO</div>
+    </div>
+    <p style="font-size: 1.3rem;">Issued on: <span id="display-date-pdf"></span></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+const questions = [
+    { 
+        t: "Tenses", 
+        q: "I ______ my breakfast when the doorbell suddenly rang.", 
+        o: ["ate", "was eating", "have eaten", "am eating"], 
+        c: 1, 
+        e: "<b>Past Continuous:</b> Use this for an ongoing action in the past (eating) that was interrupted by a shorter action (the doorbell rang). We use 'was/were + -ing' for the longer action."
+    },
+    { 
+        t: "Tenses", 
+        q: "By the time we get to the cinema, the movie ______.", 
+        o: ["starts", "will start", "will have started", "has started"], 
+        c: 2, 
+        e: "<b>Future Perfect:</b> We use 'will have + V3' to talk about an action that will be completed <i>before</i> a specific time or another action in the future."
+    },
+    { 
+        t: "Tenses", 
+        q: "She ______ in this office for over ten years now.", 
+        o: ["works", "is working", "has been working", "worked"], 
+        c: 2, 
+        e: "<b>Present Perfect Continuous:</b> Use 'has/have been + -ing' for an action that started in the past and is still continuing now, especially when emphasizing the duration (10 years)."
+    },
+    { 
+        t: "Tenses", 
+        q: "Water ______ at 0 degrees Celsius.", 
+        o: ["is freezing", "freezes", "frozen", "will freeze"], 
+        c: 1, 
+        e: "<b>Present Simple:</b> Use this for 'Zero Conditionals' or general scientific facts and universal truths that do not change."
+    },
+    { 
+        t: "Tenses", 
+        q: "I can't go out because I ______ my keys.", 
+        o: ["lost", "was losing", "have lost", "had lost"], 
+        c: 2, 
+        e: "<b>Present Perfect:</b> Use 'have + V3' when a past action has a direct result or importance in the present moment (I don't have the keys now)."
+    },
+    { 
+        t: "Tenses", 
+        q: "Last night, I ______ to bed much earlier than usual.", 
+        o: ["go", "went", "have gone", "was going"], 
+        c: 1, 
+        e: "<b>Past Simple:</b> Since 'Last night' is a finished time period, we must use the simple past form of the verb."
+    },
+    { 
+        t: "Tenses", 
+        q: "They ______ lunch right now, so they can't answer the phone.", 
+        o: ["have", "are having", "had", "will have"], 
+        c: 1, 
+        e: "<b>Present Continuous:</b> 'Right now' signals an action happening at the exact moment of speaking. Structure: 'am/is/are + -ing'."
+    },
+    { 
+        t: "Tenses", 
+        q: "When I arrived at the station, the train ______.", 
+        o: ["already left", "leaves", "had already left", "was leaving"], 
+        c: 2, 
+        e: "<b>Past Perfect:</b> We use 'had + V3' to show that one action (the train leaving) happened <i>before</i> another action in the past (my arrival)."
+    },
+    { 
+        t: "Tenses", 
+        q: "I promise I ______ you as soon as I arrive.", 
+        o: ["call", "am calling", "will call", "going to call"], 
+        c: 2, 
+        e: "<b>Future Simple (Will):</b> Use 'will' for promises, sudden decisions, or offers made at the moment of speaking."
+    },
+    { 
+        t: "Tenses", 
+        q: "He ______ any bread since he started his new diet.", 
+        o: ["doesn't eat", "isn't eating", "hasn't eaten", "didn't eat"], 
+        c: 2, 
+        e: "<b>Present Perfect:</b> 'Since' is a keyword that connects a past starting point to the present. We use negative present perfect 'hasn't + V3' here."
+    },
+    { 
+        t: "Tenses", 
+        q: "The sun ______ in the East.", 
+        o: ["rise", "rises", "is rising", "rose"], 
+        c: 1, 
+        e: "<b>Present Simple:</b> Use this for permanent situations and natural laws."
+    },
+    { 
+        t: "Tenses", 
+        q: "What ______ at 8 PM yesterday?", 
+        o: ["did you do", "were you doing", "have you done", "had you done"], 
+        c: 1, 
+        e: "<b>Past Continuous:</b> Use this for an action that was in progress at a specific point of time in the past."
+    },
+    { 
+        t: "Tenses", 
+        q: "I ______ the Taj Mahal three times in my life.", 
+        o: ["visited", "was visiting", "have visited", "am visiting"], 
+        c: 2, 
+        e: "<b>Present Perfect:</b> Use this for life experiences when the exact time isn't mentioned. It focuses on the fact that it happened, not when."
+    },
+    { 
+        t: "Tenses", 
+        q: "Next year, they ______ married for fifty years.", 
+        o: ["will be", "are", "will have been", "have been"], 
+        c: 2, 
+        e: "<b>Future Perfect:</b> This describes a state that will have lasted for a specific duration by a future point in time."
+    },
+    { 
+        t: "Tenses", 
+        q: "Wait! I ______ you with those heavy bags.", 
+        o: ["will help", "help", "am helping", "going to help"], 
+        c: 0, 
+        e: "<b>Future Simple (Will):</b> Use 'will' for spontaneous offers of help."
+    },
+    { 
+        t: "Tenses", 
+        q: "While I ______ the floor, my wife was cooking dinner.", 
+        o: ["mop", "mopped", "was mopping", "have mopped"], 
+        c: 2, 
+        e: "<b>Past Continuous:</b> When two actions were happening simultaneously in the past, we use past continuous for both."
+    },
+    { 
+        t: "Tenses", 
+        q: "I ______ a headache since this morning.", 
+        o: ["have", "am having", "have had", "had had"], 
+        c: 2, 
+        e: "<b>Present Perfect:</b> Even though the state continues, 'have' is a stative verb. We use present perfect to show the duration from the morning until now."
+    },
+    { 
+        t: "Tenses", 
+        q: "The flight ______ at 6:00 AM tomorrow.", 
+        o: ["leaves", "will leave", "is going to leave", "leaving"], 
+        c: 0, 
+        e: "<b>Present Simple:</b> We use this tense for future events that are part of a fixed timetable or schedule."
+    },
+    { 
+        t: "Tenses", 
+        q: "How long ______ for me?", 
+        o: ["you wait", "are you waiting", "have you been waiting", "did you wait"], 
+        c: 2, 
+        e: "<b>Present Perfect Continuous:</b> Use this to ask about the duration of an action that began in the past and is still happening now."
+    },
+    { 
+        t: "Tenses", 
+        q: "I ______ the report before the boss asked for it.", 
+        o: ["finished", "was finishing", "had finished", "have finished"], 
+        c: 2, 
+        e: "<b>Past Perfect:</b> This indicates that the finishing of the report happened before another past event (the boss asking)."
+    },
+    { 
+        t: "Tenses", 
+        q: "It ______ heavily right now.", 
+        o: ["snows", "is snowing", "snowed", "was snowing"], 
+        c: 1, 
+        e: "<b>Present Continuous:</b> Use 'am/is/are + -ing' for actions happening at the moment of speaking."
+    },
+    { 
+        t: "Tenses", 
+        q: "By 2030, scientists ______ a cure for the disease.", 
+        o: ["find", "will find", "will have found", "finding"], 
+        c: 2, 
+        e: "<b>Future Perfect:</b> Use 'will have + V3' to predict that an action will be completed by a certain time in the future."
+    },
+    { 
+        t: "Tenses", 
+        q: "I ______ to the park every day when I was a child.", 
+        o: ["go", "went", "have gone", "was going"], 
+        c: 1, 
+        e: "<b>Past Simple:</b> Use this for past habits or repeated actions in the past that are now finished."
+    },
+    { 
+        t: "Tenses", 
+        q: "Look! Someone ______ my car.", 
+        o: ["stole", "is stealing", "has stolen", "steals"], 
+        c: 1, 
+        e: "<b>Present Continuous:</b> Use this for an action currently in progress that we are witnessing."
+    },
+    { 
+        t: "Tenses", 
+        q: "She ______ her keys. She can't find them anywhere.", 
+        o: ["lost", "has lost", "had lost", "was losing"], 
+        c: 1, 
+        e: "<b>Present Perfect:</b> Use this when the action happened at an unspecific time but the result (not finding the keys) is relevant now."
+    },
+    { 
+        t: "Tenses", 
+        q: "I ______ English for three years before I moved to London.", 
+        o: ["studied", "was studying", "had been studying", "have been studying"], 
+        c: 2, 
+        e: "<b>Past Perfect Continuous:</b> Use 'had been + -ing' to describe an action that was ongoing in the past up until another past point (moving to London)."
+    },
+    { 
+        t: "Tenses", 
+        q: "If it ______ tonight, we won't go out.", 
+        o: ["rains", "will rain", "rained", "is raining"], 
+        c: 0, 
+        e: "<b>Present Simple (Conditionals):</b> In the First Conditional, we use the Present Simple in the 'if' clause to talk about a future possibility."
+    },
+    { 
+        t: "Tenses", 
+        q: "They ______ football at the moment.", 
+        o: ["play", "played", "are playing", "have played"], 
+        c: 2, 
+        e: "<b>Present Continuous:</b> 'At the moment' is a time marker for the present continuous tense."
+    },
+    { 
+        t: "Tenses", 
+        q: "I ______ my phone. Do you have the time?", 
+        o: ["forgot", "am forgetting", "have forgotten", "forget"], 
+        c: 2, 
+        e: "<b>Present Perfect:</b> The forgetting happened in the past, but the effect (not knowing the time) is happening now."
+    },
+    { 
+        t: "Tenses", 
+        q: "This time next week, I ______ on a beach in Hawaii.", 
+        o: ["sit", "will sit", "will be sitting", "am sitting"], 
+        c: 2, 
+        e: "<b>Future Continuous:</b> Use 'will be + -ing' for an action that will be in progress at a specific time in the future."
+    }
+
+
+    { 
+    t: "Articles", 
+    q: "My brother is ______ honest man, and everyone respects him.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 1, 
+    e: "<b>Vowel Sounds:</b> We use 'an' before words that start with a vowel <i>sound</i>. Since the 'h' in 'honest' is silent, the word starts with the vowel sound /ɒ/, requiring 'an'."
+},
+{ 
+    t: "Articles", 
+    q: "I have ______ uncle who lives in ______ United States.", 
+    o: ["a / the", "an / the", "an / no article", "the / the"], 
+    c: 1, 
+    e: "<b>Rules:</b> Use 'an' for 'uncle' (vowel sound). Use 'the' for countries that are collections of states or contain words like 'Kingdom', 'Republic', or 'Union' (The USA, The UK)."
+},
+{ 
+    t: "Articles", 
+    q: "______ Mount Everest is ______ highest mountain in the world.", 
+    o: ["The / a", "No article / the", "The / the", "A / the"], 
+    c: 1, 
+    e: "<b>Geography & Superlatives:</b> We do <i>not</i> use 'the' with individual mountain peaks (Mount Everest). However, we <i>always</i> use 'the' with superlative adjectives (the highest, the best)."
+},
+{ 
+    t: "Articles", 
+    q: "Would you like ______ cup of tea?", 
+    o: ["a", "an", "the", "no article"], 
+    c: 0, 
+    e: "<b>Indefinite Article:</b> Use 'a' when introducing a singular countable noun for the first time or when it doesn't matter which specific one you get."
+},
+{ 
+    t: "Articles", 
+    q: "I play ______ piano, but my sister plays ______ volleyball.", 
+    o: ["the / no article", "no article / the", "a / the", "the / the"], 
+    c: 0, 
+    e: "<b>Instruments vs. Sports:</b> In English, we usually use 'the' with musical instruments (play the piano) but <i>no article</i> with sports (play volleyball, play football)."
+},
+{ 
+    t: "Articles", 
+    q: "I saw ______ movie last night. ______ movie was about a space mission.", 
+    o: ["the / The", "a / A", "a / The", "the / A"], 
+    c: 2, 
+    e: "<b>First vs. Second Mention:</b> Use 'a/an' when you mention something for the first time. Use 'the' for the second mention because the listener now knows which specific thing you are talking about."
+},
+{ 
+    t: "Articles", 
+    q: "She goes to ______ work by ______ bus every day.", 
+    o: ["the / the", "no article / no article", "a / a", "the / no article"], 
+    c: 1, 
+    e: "<b>Zero Article:</b> We don't use articles for common routines like 'go to work', 'go to bed', or 'go home'. We also use no article for 'by + transport' (by bus, by car, by plane)."
+},
+{ 
+    t: "Articles", 
+    q: "Look at ______ moon! It's so bright tonight.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 2, 
+    e: "<b>Unique Objects:</b> Use 'the' for things that are unique or there is only one of in our environment (the sun, the moon, the sky, the internet)."
+},
+{ 
+    t: "Articles", 
+    q: "He is ______ European citizen but lives in Asia.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 0, 
+    e: "<b>Consonant Sounds:</b> Although 'European' starts with the letter 'E', it starts with a 'Y' sound (/j/), which is a consonant sound. Therefore, we use 'a European', not 'an European'."
+},
+{ 
+    t: "Articles", 
+    q: "______ happiness is more important than ______ money.", 
+    o: ["The / the", "A / a", "No article / no article", "The / no article"], 
+    c: 2, 
+    e: "<b>Abstract Nouns:</b> When talking about abstract concepts (happiness, love, time) or uncountable nouns (money, water) in a general sense, we do not use an article."
+},
+{ 
+    t: "Articles", 
+    q: "I need to buy ______ new pair of ______ shoes.", 
+    o: ["a / no article", "the / the", "a / the", "no article / the"], 
+    c: 0, 
+    e: "<b>Countable vs. Plural:</b> 'A pair' is singular and countable. 'Shoes' is plural and general here, so it needs no article."
+},
+{ 
+    t: "Articles", 
+    q: "______ Nile is ______ longest river in Africa.", 
+    o: ["No article / the", "The / the", "A / the", "The / a"], 
+    c: 1, 
+    e: "<b>Rivers & Superlatives:</b> We use 'the' with names of rivers (The Nile, The Amazon) and with superlatives (the longest)."
+},
+{ 
+    t: "Articles", 
+    q: "My father is ______ engineer and my mother is ______ doctor.", 
+    o: ["a / a", "an / a", "an / an", "the / the"], 
+    c: 1, 
+    e: "<b>Professions:</b> We always use 'a' or 'an' when talking about someone's job or profession."
+},
+{ 
+    t: "Articles", 
+    q: "Is ______ lunch ready yet?", 
+    o: ["a", "an", "the", "no article"], 
+    c: 3, 
+    e: "<b>Meals:</b> Generally, we do not use articles with meals (breakfast, lunch, dinner) unless we are describing a specific, special meal (e.g., 'The lunch we had yesterday was great')."
+},
+{ 
+    t: "Articles", 
+    q: "We stayed at ______ most expensive hotel in ______ town.", 
+    o: ["a / the", "the / a", "the / the", "no article / the"], 
+    c: 2, 
+    e: "<b>Superlatives & Specificity:</b> 'The most expensive' (superlative) and 'the town' (a specific place both speaker and listener know)."
+},
+{ 
+    t: "Articles", 
+    q: "I’ve been waiting for ______ hour and ______ half.", 
+    o: ["a / a", "an / a", "an / an", "the / a"], 
+    c: 1, 
+    e: "<b>Sound Rules:</b> 'Hour' has a silent 'H' (vowel sound -> an). 'Half' has a voiced 'H' (consonant sound -> a)."
+},
+{ 
+    t: "Articles", 
+    q: "Do you enjoy listening to ______ radio?", 
+    o: ["a", "an", "the", "no article"], 
+    c: 2, 
+    e: "<b>Media:</b> We usually say 'the radio', 'the internet', and 'the theater'. Interestingly, we say 'watch TV' (no article), but 'listen to the radio'."
+},
+{ 
+    t: "Articles", 
+    q: "______ information you gave me was very helpful.", 
+    o: ["A", "An", "The", "No article"], 
+    c: 2, 
+    e: "<b>Specific Uncountable:</b> While 'information' in general has no article, 'The information you gave me' is specific, so we use 'the'."
+},
+{ 
+    t: "Articles", 
+    q: "She wants to go to ______ university in ______ UK.", 
+    o: ["a / the", "an / the", "the / a", "no article / the"], 
+    c: 0, 
+    e: "<b>Sounds & Regions:</b> 'University' starts with a 'Y' sound (/j/), so it takes 'a'. Countries with 'UK' always take 'the'."
+},
+{ 
+    t: "Articles", 
+    q: "I like ______ apples, but ______ apples in that bowl are sour.", 
+    o: ["the / the", "no article / the", "a / the", "no article / no article"], 
+    c: 1, 
+    e: "<b>General vs. Specific Plural:</b> 'Apples' (general) has no article. 'The apples in that bowl' (specific) takes 'the'."
+},
+{ 
+    t: "Articles", 
+    q: "______ French are known for their food.", 
+    o: ["A", "An", "The", "No article"], 
+    c: 2, 
+    e: "<b>Nationalities:</b> When referring to a national group as a whole (The French, The Spanish, The Japanese), we use 'the'."
+},
+{ 
+    t: "Articles", 
+    q: "I forgot to bring ______ umbrella today.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 1, 
+    e: "<b>Vowel Sound:</b> 'Umbrella' starts with the vowel sound /ʌ/, so we use 'an'."
+},
+{ 
+    t: "Articles", 
+    q: "______ prison is ______ scary place.", 
+    o: ["The / the", "A / a", "No article / a", "The / a"], 
+    c: 2, 
+    e: "<b>Institution Purpose:</b> When talking about the primary purpose of a building (prison, school, hospital, church), we use no article (e.g., 'He went to prison' as a prisoner)."
+},
+{ 
+    t: "Articles", 
+    q: "He is ______ only person I can trust.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 2, 
+    e: "<b>Exclusivity:</b> Words like 'only', 'same', 'first', and 'last' usually require 'the' before them."
+},
+{ 
+    t: "Articles", 
+    q: "I love ______ animals, especially ______ dogs.", 
+    o: ["the / the", "no article / no article", "a / a", "the / no article"], 
+    c: 1, 
+    e: "<b>General Plurals:</b> We use no article when talking about plural countable nouns in a general sense."
+},
+{ 
+    t: "Articles", 
+    q: "Can you pass me ______ salt, please?", 
+    o: ["a", "an", "the", "no article"], 
+    c: 2, 
+    e: "<b>Immediate Context:</b> Even if we haven't mentioned the salt before, we use 'the' because both people can see it on the table; it's specific to the situation."
+},
+{ 
+    t: "Articles", 
+    q: "He has ______ PhD in ______ Physics.", 
+    o: ["a / no article", "an / no article", "the / the", "a / the"], 
+    c: 0, 
+    e: "<b>Degrees & Subjects:</b> Use 'a/an' for degrees. Use no article for academic subjects (Physics, Math, History)."
+},
+{ 
+    t: "Articles", 
+    q: "We traveled through ______ Andes Mountains.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 2, 
+    e: "<b>Mountain Ranges:</b> Unlike single peaks, groups of mountains or mountain ranges always take 'the' (The Andes, The Alps, The Himalayas)."
+},
+{ 
+    t: "Articles", 
+    q: "He is ______ honest boy.", 
+    o: ["a", "an", "the", "no article"], 
+    c: 1, 
+    e: "<b>Repetition for Mastery:</b> Silent 'H' in honest = 'an'."
+},
+{ 
+    t: "Articles", 
+    q: "What ______ beautiful day!", 
+    o: ["a", "an", "the", "no article"], 
+    c: 0, 
+    e: "<b>Exclamations:</b> In exclamations with 'What + singular countable noun', we always use 'a' or 'an'."
+}
+
+{ 
+    t: "Prepositions", 
+    q: "She is extremely good ______ explaining complex mathematical theories.", 
+    o: ["in", "at", "with", "for"], 
+    c: 1, 
+    e: "<b>Collocation (Good at):</b> In English, we use 'at' after adjectives that describe a level of ability, such as <i>good, bad, amazing, brilliant,</i> or <i>terrible</i>. Example: 'I am bad at drawing but good at singing.'"
+},
+{ 
+    t: "Prepositions", 
+    q: "The success of the project depends entirely ______ the team's cooperation.", 
+    o: ["of", "in", "on", "from"], 
+    c: 2, 
+    e: "<b>Dependent Preposition (Depend on):</b> The verb 'depend' is almost always followed by 'on'. While you might say 'It depends' by itself, as soon as you add an object, you must use 'on'."
+},
+{ 
+    t: "Prepositions", 
+    q: "I am interested ______ applying for the senior management position.", 
+    o: ["at", "on", "in", "for"], 
+    c: 2, 
+    e: "<b>Collocation (Interested in):</b> This is a fixed pattern. We always use 'in' after 'interested'. It is usually followed by a noun or a gerund (an -ing verb acting as a noun)."
+},
+{ 
+    t: "Prepositions", 
+    q: "He apologized ______ the client ______ the misunderstanding.", 
+    o: ["to / for", "for / to", "at / for", "to / about"], 
+    c: 0, 
+    e: "<b>Verb Pattern (Apologize):</b> The rule is: Apologize <i>to</i> (someone) <i>for</i> (something). You address the person with 'to' and the reason with 'for'."
+},
+{ 
+    t: "Prepositions", 
+    q: "We are arriving ______ London ______ 7:00 PM.", 
+    o: ["at / on", "in / at", "to / at", "in / in"], 
+    c: 1, 
+    e: "<b>Place & Time:</b> Use 'arrive in' for large areas like cities or countries. Use 'arrive at' for specific points like a station or airport. For specific clock times, we always use 'at'."
+},
+{ 
+    t: "Prepositions", 
+    q: "She has been married ______ him for twenty-five years.", 
+    o: ["with", "to", "for", "by"], 
+    c: 1, 
+    e: "<b>Common Error:</b> Many learners use 'with' because it feels natural, but in English, the adjective 'married' is followed by 'to'. You are married <i>to</i> someone."
+},
+{ 
+    t: "Prepositions", 
+    q: "I am really looking forward ______ meeting your family.", 
+    o: ["to", "at", "for", "with"], 
+    c: 0, 
+    e: "<b>Phrasal Verb:</b> 'Look forward to' is a three-part phrasal verb. The 'to' is a preposition, not part of an infinitive, which is why it is followed by the -ing form (meeting)."
+},
+{ 
+    t: "Prepositions", 
+    q: "Are you afraid ______ the dark?", 
+    o: ["from", "with", "of", "by"], 
+    c: 2, 
+    e: "<b>Adjective + Preposition:</b> Feelings of fear or dislike are often followed by 'of'. Examples: 'afraid of', 'scared of', 'terrified of', 'frightened of'."
+},
+{ 
+    t: "Prepositions", 
+    q: "The manager was very satisfied ______ the results of the survey.", 
+    o: ["with", "about", "for", "at"], 
+    c: 0, 
+    e: "<b>Collocation:</b> We use 'with' after 'satisfied' or 'pleased' to show we are happy with a specific outcome or item."
+},
+{ 
+    t: "Prepositions", 
+    q: "He is responsible ______ hiring new employees.", 
+    o: ["at", "to", "for", "with"], 
+    c: 2, 
+    e: "<b>Adjective + Preposition:</b> We use 'responsible for' to describe a duty, a job role, or the cause of an event."
+},
+{ 
+    t: "Prepositions", 
+    q: "I prefer drinking tea ______ coffee.", 
+    o: ["than", "to", "from", "over"], 
+    c: 1, 
+    e: "<b>Preference:</b> While 'more than' is used for general comparisons, the verb 'prefer' uses the preposition 'to' to separate the two choices. 'I prefer A to B.'"
+},
+{ 
+    t: "Prepositions", 
+    q: "They are very proud ______ their daughter's achievements.", 
+    o: ["for", "of", "about", "at"], 
+    c: 1, 
+    e: "<b>Collocation:</b> 'Proud of' is the standard way to express pride in someone or something. It never takes 'for' or 'about'."
+},
+{ 
+    t: "Prepositions", 
+    q: "The city is famous ______ its beautiful architecture.", 
+    o: ["as", "for", "with", "by"], 
+    c: 1, 
+    e: "<b>Reason for Fame:</b> We use 'famous for' to state the reason why a person or place is well-known."
+},
+{ 
+    t: "Prepositions", 
+    q: "She is very similar ______ her older sister.", 
+    o: ["with", "as", "to", "like"], 
+    c: 2, 
+    e: "<b>Comparison:</b> We use 'similar to' when comparing two things that are almost the same. If they were different, we would say 'different from'."
+},
+{ 
+    t: "Prepositions", 
+    q: "I am fed up ______ this constant rain!", 
+    o: ["with", "at", "about", "of"], 
+    c: 0, 
+    e: "<b>Idiom:</b> 'Fed up with' is an informal expression meaning you are bored, annoyed, or tired of a situation that has continued too long."
+},
+{ 
+    t: "Prepositions", 
+    q: "Please pay attention ______ what I am saying.", 
+    o: ["at", "on", "to", "for"], 
+    c: 2, 
+    e: "<b>Verb + Preposition:</b> 'Pay attention to' is a fixed phrase. You direct your focus 'to' a person or an object."
+},
+{ 
+    t: "Prepositions", 
+    q: "He succeeded ______ passing the exam despite the difficulty.", 
+    o: ["on", "at", "in", "for"], 
+    c: 2, 
+    e: "<b>Verb Pattern:</b> 'Succeed in' is always followed by an -ing verb. It describes achieving a goal after effort."
+},
+{ 
+    t: "Prepositions", 
+    q: "I believe ______ honesty and hard work.", 
+    o: ["on", "in", "at", "with"], 
+    c: 1, 
+    e: "<b>Faith/Trust:</b> 'Believe in' is used to express faith in the existence of something or trust in the value of an idea."
+},
+{ 
+    t: "Prepositions", 
+    q: "She reminds me ______ a girl I used to know.", 
+    o: ["about", "of", "with", "to"], 
+    c: 1, 
+    e: "<b>Memory:</b> We use 'remind of' when someone or something makes us think of a similar person or thing from the past."
+},
+{ 
+    t: "Prepositions", 
+    q: "He is brilliant ______ solving puzzles.", 
+    o: ["in", "on", "at", "with"], 
+    c: 2, 
+    e: "<b>Ability:</b> Just like 'good at', we use 'at' with words like 'brilliant', 'expert', or 'master' when referring to a skill."
+},
+{ 
+    t: "Prepositions", 
+    q: "We might go for a picnic; it depends ______ the weather.", 
+    o: ["of", "from", "on", "in"], 
+    c: 2, 
+    e: "<b>Fixed Rule:</b> Always use 'depend on'. Never use 'depend of' (which is a common mistake for Spanish/French speakers)."
+},
+{ 
+    t: "Prepositions", 
+    q: "I'm not very keen ______ spicy food.", 
+    o: ["at", "on", "in", "about"], 
+    c: 1, 
+    e: "<b>Likes/Interests:</b> 'Keen on' is a British English expression that means to like or be interested in something."
+},
+{ 
+    t: "Prepositions", 
+    q: "They were accused ______ stealing the documents.", 
+    o: ["for", "of", "about", "with"], 
+    c: 1, 
+    e: "<b>Legal/Formal:</b> If someone says you did something wrong, they 'accuse you of' that action. It is always followed by 'of' + -ing."
+},
+{ 
+    t: "Prepositions", 
+    q: "The reason ______ the delay was a mechanical failure.", 
+    o: ["of", "for", "about", "why"], 
+    c: 1, 
+    e: "<b>Cause/Reason:</b> We use 'reason for' when a noun follows. If you use a verb, you would say 'reason why'."
+},
+{ 
+    t: "Prepositions", 
+    q: "I was shocked ______ the news of his resignation.", 
+    o: ["at", "with", "for", "to"], 
+    c: 0, 
+    e: "<b>Reactions:</b> Adjectives of surprise (shocked, surprised, amazed, astonished) are usually followed by 'at' or 'by'."
+},
+{ 
+    t: "Prepositions", 
+    q: "She is very kind ______ animals.", 
+    o: ["to", "with", "at", "for"], 
+    c: 0, 
+    e: "<b>Behavior:</b> When describing how we treat others, we use 'to'. Examples: 'kind to', 'polite to', 'mean to', 'rude to'."
+},
+{ 
+    t: "Prepositions", 
+    q: "He is addicted ______ coffee.", 
+    o: ["with", "to", "on", "at"], 
+    c: 1, 
+    e: "<b>Dependency:</b> 'Addicted to' is a fixed phrase used for any strong habit or physical dependency."
+},
+{ 
+    t: "Prepositions", 
+    q: "I'm so sorry ______ losing your book.", 
+    o: ["at", "about", "for", "with"], 
+    c: 2, 
+    e: "<b>Apology:</b> We are 'sorry for' an action (losing, being late) and 'sorry about' a situation (the bad news, the mess)."
+},
+{ 
+    t: "Prepositions", 
+    q: "This song belongs ______ the 1980s.", 
+    o: ["to", "at", "in", "with"], 
+    c: 0, 
+    e: "<b>Ownership/Origin:</b> 'Belong to' is used to show who owns something or what group/time period something is part of."
+},
+{ 
+    t: "Prepositions", 
+    q: "Is there a solution ______ this problem?", 
+    o: ["of", "to", "for", "about"], 
+    c: 1, 
+    e: "<b>Answers:</b> We say 'the solution to', 'the answer to', 'the reply to', and 'the key to'. These nouns all use 'to'."
+}
+
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ touch that wire! It's extremely dangerous.", 
+    o: ["shouldn't", "don't have to", "mustn't", "needn't"], 
+    c: 2, 
+    e: "<b>Prohibition (Mustn't):</b> Use 'mustn't' when something is forbidden or very dangerous. 'Don't have to' means it's optional, which would be wrong here since the wire is dangerous."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "I ______ speak three languages fluently when I was only ten years old.", 
+    o: ["can", "could", "might", "should"], 
+    c: 1, 
+    e: "<b>Past Ability (Could):</b> 'Could' is the past tense of 'can'. Use it to describe general abilities you had in the past."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "The lights are on in their house. They ______ be home.", 
+    o: ["must", "can't", "might not", "should"], 
+    c: 0, 
+    e: "<b>Logical Deduction (Must):</b> Use 'must' when you are almost 100% certain that something is true based on strong evidence (like the lights being on)."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ finish the report today; the deadline is actually next Friday.", 
+    o: ["mustn't", "shouldn't", "don't have to", "couldn't"], 
+    c: 2, 
+    e: "<b>Lack of Necessity (Don't have to):</b> Use 'don't have to' when there is no obligation. It is your choice whether you do it or not."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "It's starting to rain. You ______ take an umbrella.", 
+    o: ["would", "should", "might", "can"], 
+    c: 1, 
+    e: "<b>Advice (Should):</b> Use 'should' to give or ask for advice and suggestions."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "I ______ come to the party tonight, but I'm not sure yet.", 
+    o: ["must", "might", "can", "should"], 
+    c: 1, 
+    e: "<b>Possibility (Might):</b> Use 'might' or 'may' when something is possible but not certain."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "She ______ be the thief; she was with me at the time of the robbery.", 
+    o: ["mustn't", "shouldn't", "can't", "might not"], 
+    c: 2, 
+    e: "<b>Negative Deduction (Can't):</b> Use 'can't' when you are certain that something is impossible based on evidence."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "______ I use your phone for a quick call?", 
+    o: ["May", "Must", "Should", "Would"], 
+    c: 0, 
+    e: "<b>Permission (May):</b> 'May' is a formal way to ask for permission. 'Can' is also used informally, but 'May' is the most correct for polite requests."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "He ______ have forgotten about the meeting. He's usually very punctual.", 
+    o: ["must", "should", "might", "can"], 
+    c: 2, 
+    e: "<b>Past Possibility:</b> 'Might have + V3' is used to make a guess about something that happened in the past."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "Drivers ______ stop when the traffic light is red.", 
+    o: ["should", "could", "must", "may"], 
+    c: 2, 
+    e: "<b>Strong Obligation (Must):</b> Use 'must' for laws, rules, and strong personal obligations."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ better study hard if you want to pass this exam.", 
+    o: ["should", "would", "had", "must"], 
+    c: 2, 
+    e: "<b>Strong Advice (Had better):</b> 'Had better' is used for strong advice that often implies a negative consequence if not followed."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "We ______ have booked a table. The restaurant is completely full!", 
+    o: ["must", "should", "can", "might"], 
+    c: 1, 
+    e: "<b>Past Regret (Should have):</b> Use 'should have + V3' to talk about things that were a good idea in the past but you didn't do them."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "I ______ rather stay home than go to the cinema tonight.", 
+    o: ["should", "would", "could", "will"], 
+    c: 1, 
+    e: "<b>Preference (Would rather):</b> 'Would rather' is a fixed expression used to show preference between two options."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "If you go to Egypt, you ______ visit the pyramids.", 
+    o: ["can", "may", "must", "might"], 
+    c: 2, 
+    e: "<b>Recommendation:</b> While 'must' is for rules, it is also used for very strong recommendations (e.g., 'You must try this cake!')."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "When I was younger, I ______ run a marathon in under four hours.", 
+    o: ["can", "could", "was able", "might"], 
+    c: 1, 
+    e: "<b>Past Ability:</b> 'Could' expresses a general ability in the past."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ smoke in the hospital. It's strictly prohibited.", 
+    o: ["shouldn't", "mustn't", "don't have to", "can't"], 
+    c: 1, 
+    e: "<b>Prohibition:</b> 'Mustn't' is the standard modal for things that are against the rules."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "______ you please pass the salt?", 
+    o: ["Should", "May", "Could", "Must"], 
+    c: 2, 
+    e: "<b>Polite Request:</b> 'Could' and 'Would' are the standard modals for making polite requests to someone else."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "He ______ have been very tired; he fell asleep during the movie.", 
+    o: ["must", "can't", "should", "might"], 
+    c: 0, 
+    e: "<b>Past Deduction:</b> 'Must have + V3' is used when we are certain something happened in the past based on the results we see."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "I ______ to go to the dentist yesterday because I had a toothache.", 
+    o: ["must", "should", "had", "ought"], 
+    c: 2, 
+    e: "<b>Past Obligation (Had to):</b> 'Must' has no past tense form. To express obligation in the past, we always use 'had to'."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "We ______ leave now, or we will miss our train.", 
+    o: ["ought", "could", "must", "might"], 
+    c: 2, 
+    e: "<b>Urgency:</b> 'Must' expresses a logical necessity to avoid a negative result (missing the train)."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ wear a uniform at this school; it's optional.", 
+    o: ["mustn't", "don't have to", "shouldn't", "couldn't"], 
+    c: 1, 
+    e: "<b>Lack of Obligation:</b> 'Don't have to' is the correct choice for something that is not required."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "That ______ be the mailman. It's only 7 AM; he never comes this early.", 
+    o: ["mustn't", "can't", "might not", "shouldn't"], 
+    c: 1, 
+    e: "<b>Logical Impossibility:</b> Use 'can't' to say you are sure something is not true."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "I think you ______ apologize for what you said.", 
+    o: ["would", "should", "might", "can"], 
+    c: 1, 
+    e: "<b>Advice:</b> 'Should' is used to suggest the right thing to do."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "She ______ speak Italian very well, but she has forgotten most of it.", 
+    o: ["can", "must", "used to", "could"], 
+    c: 2, 
+    e: "<b>Past State/Habit:</b> 'Used to' isn't technically a modal verb, but it is used like one to describe past abilities or states that are no longer true."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "______ we go for a walk after dinner?", 
+    o: ["Will", "Shall", "Must", "Would"], 
+    c: 1, 
+    e: "<b>Suggestions (Shall):</b> In British English, 'Shall' is used with 'I' and 'We' to make suggestions or offers."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ have told me you were coming! I would have cooked more food.", 
+    o: ["must", "might", "should", "could"], 
+    c: 2, 
+    e: "<b>Past Criticism:</b> 'Should have + V3' is often used to criticize someone for not doing something that was expected."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "He ______ be at work. His car isn't in the driveway.", 
+    o: ["must", "can", "might", "should"], 
+    c: 0, 
+    e: "<b>Deduction:</b> 'Must' is used because the evidence (car not there) points strongly to this conclusion."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "You ______ not use your phone during the exam.", 
+    o: ["may", "should", "must", "could"], 
+    c: 2, 
+    e: "<b>Formal Prohibition:</b> 'Must not' is the strongest way to state that something is against the rules."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "I ______ to be able to swim when I was a child.", 
+    o: ["used", "ought", "must", "could"], 
+    c: 0, 
+    e: "<b>Past State:</b> 'Used to' is the only option here that fits with the 'to be' structure."
+},
+{ 
+    t: "Modal Verbs", 
+    q: "They ______ be exhausted after that long flight.", 
+    o: ["can", "should", "must", "would"], 
+    c: 2, 
+    e: "<b>Logical Conclusion:</b> Based on the fact that the flight was long, 'must' expresses our certainty about their state."
+}
+
+{ 
+    t: "Conditionals", 
+    q: "If you ______ ice, it ______.", 
+    o: ["heat / melts", "will heat / melts", "heated / would melt", "heat / will melt"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> Use this for general truths and scientific facts. Structure: If + Present Simple, Present Simple."
+},
+{ 
+    t: "Conditionals", 
+    q: "If it ______ tomorrow, we ______ the picnic.", 
+    o: ["rains / cancel", "rains / will cancel", "will rain / cancel", "rained / would cancel"], 
+    c: 1, 
+    e: "<b>First Conditional:</b> Use this for real possibilities in the future. Structure: If + Present Simple, Will + Verb."
+},
+{ 
+    t: "Conditionals", 
+    q: "If I ______ you, I ______ that car. It looks unreliable.", 
+    o: ["am / won't buy", "was / wouldn't buy", "were / wouldn't buy", "were / won't buy"], 
+    c: 2, 
+    e: "<b>Second Conditional:</b> Use 'were' for all subjects in the 'if' clause when giving advice or talking about hypothetical situations. Structure: If + Past Simple, Would + Verb."
+},
+{ 
+    t: "Conditionals", 
+    q: "If she ______ harder, she ______ the exam last week.", 
+    o: ["studied / would pass", "had studied / would have passed", "studied / would have passed", "had studied / would pass"], 
+    c: 1, 
+    e: "<b>Third Conditional:</b> Use this for past regrets or imaginary past situations. Structure: If + Past Perfect (had + V3), Would have + V3."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ red and blue, you ______ purple.", 
+    o: ["mix / get", "mixed / would get", "will mix / get", "mix / will get"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> This is a color fact, so we use present simple in both parts of the sentence."
+},
+{ 
+    t: "Conditionals", 
+    q: "I ______ to the party if I ______ finish my work early.", 
+    o: ["go / will", "will go / finish", "would go / finished", "go / finish"], 
+    c: 1, 
+    e: "<b>First Conditional:</b> Talking about a likely future event. Note that 'will' never goes in the 'if' part of the sentence."
+},
+{ 
+    t: "Conditionals", 
+    q: "What ______ if you ______ a million dollars on the street?", 
+    o: ["will you do / find", "would you do / found", "do you do / find", "would you do / find"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> This is a highly unlikely/imaginary situation, so we use the hypothetical past structure."
+},
+{ 
+    t: "Conditionals", 
+    q: "If they ______ the map, they ______ lost.", 
+    o: ["brought / wouldn't get", "had brought / wouldn't have gotten", "bring / won't get", "had brought / wouldn't get"], 
+    c: 1, 
+    e: "<b>Third Conditional:</b> This refers to a past event that didn't happen (they didn't bring the map, so they did get lost)."
+},
+{ 
+    t: "Conditionals", 
+    q: "If I ______ wings, I ______ fly everywhere.", 
+    o: ["have / will", "had / would", "had / will", "have / would"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> Humans don't have wings, so this is an impossible present situation."
+},
+{ 
+    t: "Conditionals", 
+    q: "Plants ______ if they ______ enough water.", 
+    o: ["die / don't get", "will die / didn't get", "would die / don't get", "die / won't get"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> A biological fact. If the condition is true, the result is always true."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ me earlier, I ______ able to help you.", 
+    o: ["told / would be", "had told / would have been", "tell / will be", "had told / would be"], 
+    c: 1, 
+    e: "<b>Third Conditional:</b> Re-imagining a past event. 'Had told' (past perfect) and 'would have been'."
+},
+{ 
+    t: "Conditionals", 
+    q: "If he ______ up on time, he ______ the train.", 
+    o: ["wakes / catches", "woke / would catch", "had woken / wouldn't have missed", "wakes / will catch"], 
+    c: 2, 
+    e: "<b>Third Conditional:</b> Usually used for 'missed opportunities' in the past."
+},
+{ 
+    t: "Conditionals", 
+    q: "If I ______ more time, I ______ up a new hobby.", 
+    o: ["have / will take", "had / would take", "had / will take", "have / would take"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> Talking about a present situation that I want to be different (but I don't have the time right now)."
+},
+{ 
+    t: "Conditionals", 
+    q: "You ______ weight if you ______ eating junk food.", 
+    o: ["lose / stop", "will lose / stop", "would lose / stopped", "will lose / will stop"], 
+    c: 1, 
+    e: "<b>First Conditional:</b> A real promise or prediction for the future based on a condition."
+},
+{ 
+    t: "Conditionals", 
+    q: "If I ______ the lottery, I ______ a big house in Italy.", 
+    o: ["win / will buy", "won / would buy", "had won / would have bought", "win / buy"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> Winning the lottery is very unlikely, so we use the hypothetical past."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ water to 100 degrees, it ______.", 
+    o: ["heat / boils", "will heat / boils", "heated / would boil", "heat / will boil"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> A physical law."
+},
+{ 
+    t: "Conditionals", 
+    q: "I ______ to the doctor if I ______ you.", 
+    o: ["will go / am", "would go / were", "go / were", "would go / was"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> Giving advice using the 'If I were you' phrase."
+},
+{ 
+    t: "Conditionals", 
+    q: "If she ______ about the meeting, she ______.", 
+    o: ["knew / would come", "had known / would have come", "knows / will come", "had known / would come"], 
+    c: 1, 
+    e: "<b>Third Conditional:</b> She didn't know (past), so she didn't come (past)."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ an apple every day, you ______ healthy.", 
+    o: ["eat / stay", "ate / would stay", "will eat / stay", "eat / will stay"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> Used for general advice or habits that lead to a constant result."
+},
+{ 
+    t: "Conditionals", 
+    q: "We ______ late if we ______ now.", 
+    o: ["are / won't leave", "will be / don't leave", "would be / didn't leave", "are / don't leave"], 
+    c: 1, 
+    e: "<b>First Conditional:</b> A warning about a future consequence."
+},
+{ 
+    t: "Conditionals", 
+    q: "If I ______ the answer, I ______ tell you.", 
+    o: ["know / will", "knew / would", "know / would", "knew / will"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> I don't know the answer right now, so I can't tell you."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ the light, it ______ dark.", 
+    o: ["turn off / gets", "turned off / got", "will turn off / gets", "turn off / will get"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> Cause and effect."
+},
+{ 
+    t: "Conditionals", 
+    q: "I ______ that laptop if it ______ so expensive.", 
+    o: ["will buy / isn't", "would buy / wasn't", "bought / wasn't", "would have bought / hadn't been"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> Hypothetical present. I want to buy it, but the price is stopping me."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ enough sleep, you ______ tired.", 
+    o: ["don't get / feel", "didn't get / felt", "won't get / feel", "don't get / will feel"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> A general truth about the body."
+},
+{ 
+    t: "Conditionals", 
+    q: "If we ______ more money, we ______ a new car.", 
+    o: ["have / will buy", "had / would buy", "had / will buy", "have / buy"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> Imaginary present situation."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ too much, you ______ fat.", 
+    o: ["eat / get", "ate / would get", "will eat / get", "eat / will get"], 
+    c: 0, 
+    e: "<b>Zero Conditional:</b> A predictable result of an action."
+},
+{ 
+    t: "Conditionals", 
+    q: "I ______ to the park if it ______ sunny tomorrow.", 
+    o: ["go / is", "will go / is", "would go / was", "will go / will be"], 
+    c: 1, 
+    e: "<b>First Conditional:</b> Use 'is' (present simple) in the if-clause for future conditions."
+},
+{ 
+    t: "Conditionals", 
+    q: "If she ______ me, I ______ her.", 
+    o: ["asks / help", "asked / would help", "had asked / would have helped", "asks / will help"], 
+    c: 2, 
+    e: "<b>Third Conditional:</b> She didn't ask, so I didn't help."
+},
+{ 
+    t: "Conditionals", 
+    q: "If you ______ your homework, I ______ you go out.", 
+    o: ["don't do / won't let", "didn't do / wouldn't let", "not do / won't let", "won't do / don't let"], 
+    c: 0, 
+    e: "<b>First Conditional:</b> A condition for permission."
+},
+{ 
+    t: "Conditionals", 
+    q: "If I ______ how to swim, I ______ to the beach more often.", 
+    o: ["know / will go", "knew / would go", "know / would go", "knew / will go"], 
+    c: 1, 
+    e: "<b>Second Conditional:</b> I don't know how to swim, so I don't go."
+}
+
+{ 
+    t: "Relative Clauses", 
+    q: "The man ______ lives next door is a famous architect.", 
+    o: ["which", "who", "whom", "whose"], 
+    c: 1, 
+    e: "<b>Who:</b> Use 'who' as a relative pronoun for people when they are the subject of the clause."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "I've lost the book ______ you lent me last week.", 
+    o: ["who", "whom", "whose", "that"], 
+    c: 3, 
+    e: "<b>That/Which:</b> Use 'that' or 'which' for objects or animals. 'That' is very common in defining relative clauses."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "That is the girl ______ brother won the national chess championship.", 
+    o: ["who", "whose", "whom", "which"], 
+    c: 1, 
+    e: "<b>Whose:</b> This is the possessive relative pronoun. Use it to show that something belongs to the person or thing mentioned before."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The hotel ______ we stayed was very clean and modern.", 
+    o: ["where", "which", "that", "when"], 
+    c: 0, 
+    e: "<b>Where:</b> Use 'where' for places. Note: If you used 'which', you would need a preposition (e.g., 'The hotel <i>in which</i> we stayed')."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "Summer is the season ______ I feel most energetic.", 
+    o: ["where", "which", "when", "that"], 
+    c: 2, 
+    e: "<b>When:</b> Use 'when' as a relative pronoun to refer to a specific time, day, or season."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The laptop, ______ I bought only a month ago, is already broken.", 
+    o: ["that", "which", "who", "whom"], 
+    c: 1, 
+    e: "<b>Non-defining Clauses:</b> We use 'which' (not 'that') in non-defining clauses (clauses surrounded by commas that provide extra, non-essential info)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "Do you know the person ______ the manager is talking to?", 
+    o: ["whose", "which", "whom", "where"], 
+    c: 2, 
+    e: "<b>Whom:</b> In formal English, 'whom' is used instead of 'who' when the person is the <i>object</i> of the verb or preposition."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The town ______ I grew up is now a busy city.", 
+    o: ["that", "which", "where", "who"], 
+    c: 2, 
+    e: "<b>Where:</b> Used to refer to a location as a place where an action (growing up) happened."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "This is the car ______ engine needs to be replaced.", 
+    o: ["who", "that", "which", "whose"], 
+    c: 3, 
+    e: "<b>Whose:</b> Used here for the 'possessive' of an object (the car's engine)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The students ______ finish the test early can leave the room.", 
+    o: ["which", "whom", "who", "whose"], 
+    c: 2, 
+    e: "<b>Who:</b> Defines a specific group of people acting as the subject."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "Is this the documentary ______ won the award?", 
+    o: ["who", "whom", "whose", "which"], 
+    c: 3, 
+    e: "<b>Which:</b> Used to identify a specific thing/object."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The reason ______ she left the company is still a mystery.", 
+    o: ["why", "which", "where", "when"], 
+    c: 0, 
+    e: "<b>Why:</b> We use 'why' after the word 'reason' to introduce a clause explaining the cause."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The cake ______ my mother baked was delicious.", 
+    o: ["who", "whom", "whose", "that"], 
+    c: 3, 
+    e: "<b>That:</b> Identifying the specific object."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "1969 was the year ______ man first walked on the moon.", 
+    o: ["where", "when", "which", "that"], 
+    c: 1, 
+    e: "<b>When:</b> Referring back to a specific point in time (the year)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The doctor ______ treated me was very professional.", 
+    o: ["which", "who", "whom", "whose"], 
+    c: 1, 
+    e: "<b>Who:</b> Referring to a person performing an action."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "My neighbor, ______ son is a pilot, travels a lot.", 
+    o: ["who", "whom", "whose", "which"], 
+    c: 2, 
+    e: "<b>Whose:</b> Showing possession (the son of my neighbor)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "Give me the hammer ______ is lying on the table.", 
+    o: ["who", "whom", "whose", "that"], 
+    c: 3, 
+    e: "<b>That:</b> Used for an object in a defining clause."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The park ______ we used to play is now a parking lot.", 
+    o: ["which", "that", "where", "whom"], 
+    c: 2, 
+    e: "<b>Where:</b> Referring to the location of a past action."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The people ______ I work with are very friendly.", 
+    o: ["which", "who", "whose", "where"], 
+    c: 1, 
+    e: "<b>Who:</b> Referring to the people as the object of 'work with'. In formal English, 'whom' could also be used."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "Everything ______ he said turned out to be true.", 
+    o: ["which", "that", "who", "whom"], 
+    c: 1, 
+    e: "<b>That:</b> We prefer 'that' after words like 'everything', 'something', 'anything', and 'nothing'."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The shop ______ sells organic fruit is around the corner.", 
+    o: ["who", "whom", "whose", "which"], 
+    c: 3, 
+    e: "<b>Which:</b> Identifying a specific place/thing."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The woman ______ car was stolen called the police.", 
+    o: ["who", "whose", "whom", "which"], 
+    c: 1, 
+    e: "<b>Whose:</b> Possessive relative pronoun (the woman's car)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The office ______ my father works is very far.", 
+    o: ["where", "which", "that", "when"], 
+    c: 0, 
+    e: "<b>Where:</b> Referring to a place of work."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "He is the singer ______ I was telling you about.", 
+    o: ["which", "whose", "who", "where"], 
+    c: 2, 
+    e: "<b>Who:</b> Referring to a person."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The house ______ roof was damaged has been repaired.", 
+    o: ["that", "which", "whose", "where"], 
+    c: 2, 
+    e: "<b>Whose:</b> Possessive for an object (the house's roof)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The moment ______ I saw her, I knew she was the one.", 
+    o: ["when", "where", "which", "that"], 
+    c: 0, 
+    e: "<b>When:</b> Referring back to a specific moment in time."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The painting, ______ was painted in 1890, is worth millions.", 
+    o: ["that", "which", "who", "whom"], 
+    c: 1, 
+    e: "<b>Which:</b> Used in a non-defining clause (extra info about the painting)."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The bag ______ she is carrying looks very heavy.", 
+    o: ["who", "whom", "whose", "that"], 
+    c: 3, 
+    e: "<b>That:</b> Identifying the specific object."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "He is the man ______ saved the drowning child.", 
+    o: ["whom", "who", "whose", "which"], 
+    c: 1, 
+    e: "<b>Who:</b> Subject relative pronoun for a person."
+},
+{ 
+    t: "Relative Clauses", 
+    q: "The village ______ my grandparents live is very peaceful.", 
+    o: ["where", "which", "that", "when"], 
+    c: 0, 
+    e: "<b>Where:</b> Location relative pronoun."
+}
+
+{ 
+    t: "Passive Voice", 
+    q: "The Mona Lisa ______ by Leonardo da Vinci in the early 16th century.", 
+    o: ["is painted", "was painted", "has been painted", "was painting"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> We use 'was/were + Past Participle (V3)' for completed actions in the past where the object (The Mona Lisa) is the focus."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Millions of emails ______ every single day.", 
+    o: ["are sent", "send", "are sending", "were sent"], 
+    c: 0, 
+    e: "<b>Present Simple Passive:</b> For general facts or habits, use 'am/is/are + V3'. Here, 'emails' is plural, so we use 'are'."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The new highway ______ by the end of next year.", 
+    o: ["will finish", "is finished", "will be finished", "has been finished"], 
+    c: 2, 
+    e: "<b>Future Simple Passive:</b> Use 'will be + V3' to talk about an action that will happen to the subject in the future."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The room ______ right now, so you can't go in.", 
+    o: ["is cleaned", "is being cleaned", "was cleaned", "has been cleaned"], 
+    c: 1, 
+    e: "<b>Present Continuous Passive:</b> Use 'am/is/are + being + V3' for actions happening at the moment of speaking."
+},
+{ 
+    t: "Passive Voice", 
+    q: "All the tickets ______ already.", 
+    o: ["have been sold", "are sold", "were sold", "have sold"], 
+    c: 0, 
+    e: "<b>Present Perfect Passive:</b> Use 'have/has been + V3' for past actions that have a result in the present (the tickets are gone now)."
+},
+{ 
+    t: "Passive Voice", 
+    q: "America ______ by Columbus in 1492.", 
+    o: ["discovered", "was discovered", "is discovered", "had discovered"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> Used for historical facts. The emphasis is on the discovery, not just the discoverer."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The decision ______ until the next meeting.", 
+    o: ["won't make", "won't be made", "isn't made", "hasn't made"], 
+    c: 1, 
+    e: "<b>Future Passive (Negative):</b> 'Will not be + V3' is used to describe a future event that will not be performed on the subject."
+},
+{ 
+    t: "Passive Voice", 
+    q: "This book ______ into 40 different languages so far.", 
+    o: ["is translated", "was translated", "has been translated", "translates"], 
+    c: 2, 
+    e: "<b>Present Perfect Passive:</b> 'So far' indicates an action that started in the past and continues to be relevant now."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The suspects ______ by the police at this very moment.", 
+    o: ["are questioned", "are being questioned", "were questioned", "question"], 
+    c: 1, 
+    e: "<b>Present Continuous Passive:</b> Used for an ongoing action (questioning) happening to the subject (the suspects)."
+},
+{ 
+    t: "Passive Voice", 
+    q: "My car ______ when I was at work.", 
+    o: ["stole", "was stolen", "is stolen", "has been stolen"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> We use this when the 'doer' is unknown or less important than the object (the car)."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Wait! The floor ______.", 
+    o: ["just mopped", "is just mopping", "has just been mopped", "was just mopped"], 
+    c: 2, 
+    e: "<b>Present Perfect Passive:</b> Used for very recent actions. 'Has been + V3'."
+},
+{ 
+    t: "Passive Voice", 
+    q: "English ______ all over the world.", 
+    o: ["speaks", "is spoken", "is speaking", "was spoken"], 
+    c: 1, 
+    e: "<b>Present Simple Passive:</b> Used for widespread facts and general truths."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The bridge ______ because of the storm last night.", 
+    o: ["damaged", "was damaged", "has been damaged", "was damaging"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> Specifically referring to the result of a past event (the storm)."
+},
+{ 
+    t: "Passive Voice", 
+    q: "This cake ______ by my grandmother for my birthday tomorrow.", 
+    o: ["will make", "is made", "will be made", "makes"], 
+    c: 2, 
+    e: "<b>Future Passive:</b> Focuses on the object that will be created in the future."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The letter ______ yesterday afternoon.", 
+    o: ["is posted", "was posted", "has been posted", "posted"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> 'Yesterday' indicates a finished time in the past."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The documents ______ by the secretary yet.", 
+    o: ["haven't been typed", "weren't typed", "isn't typed", "haven't typed"], 
+    c: 0, 
+    e: "<b>Present Perfect Passive (Negative):</b> 'Yet' is a signal word for the perfect tense."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Active: 'They are building a school.' Passive: 'A school ______.'", 
+    o: ["is built", "is being built", "was built", "will be built"], 
+    c: 1, 
+    e: "<b>Tense Consistency:</b> If the active is Present Continuous, the passive must also be Present Continuous Passive."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The thief ______ by the neighbor before the police arrived.", 
+    o: ["is caught", "was caught", "had been caught", "caught"], 
+    c: 2, 
+    e: "<b>Past Perfect Passive:</b> Use 'had been + V3' when one passive action happened before another past event."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Our lunch ______ by a famous chef today.", 
+    o: ["is prepared", "is being prepared", "was prepared", "has prepared"], 
+    c: 1, 
+    e: "<b>Present Continuous Passive:</b> Describing an action happening today/around now."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Computers ______ in almost every household nowadays.", 
+    o: ["use", "are used", "were used", "are using"], 
+    c: 1, 
+    e: "<b>Present Simple Passive:</b> Describing a current general state."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The light bulb ______ by Thomas Edison.", 
+    o: ["invented", "was invented", "is invented", "has been invented"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> Standard for historical inventions."
+},
+{ 
+    t: "Passive Voice", 
+    q: "These mountains ______ from miles away.", 
+    o: ["can see", "can be seen", "could see", "are seen"], 
+    c: 1, 
+    e: "<b>Passive with Modals:</b> For modal verbs (can, must, should), use 'Modal + be + V3'."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Wine ______ in this region for centuries.", 
+    o: ["is produced", "has been produced", "was produced", "produced"], 
+    c: 1, 
+    e: "<b>Present Perfect Passive:</b> 'For centuries' shows the duration from the past to the present."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The gold ______ in a hidden cave.", 
+    o: ["found", "was found", "is finding", "has found"], 
+    c: 1, 
+    e: "<b>Past Simple Passive:</b> The person who found it is unknown; the discovery is the focus."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Active: 'She should clean the room.' Passive: 'The room ______.'", 
+    o: ["should clean", "should be cleaned", "should being cleaned", "is cleaned"], 
+    c: 1, 
+    e: "<b>Passive with Modals:</b> 'Should' + 'be' + V3."
+},
+{ 
+    t: "Passive Voice", 
+    q: "By the time we arrived, the food ______.", 
+    o: ["is eaten", "was eaten", "had been eaten", "has been eaten"], 
+    c: 2, 
+    e: "<b>Past Perfect Passive:</b> The food was finished <i>before</i> the arrival."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Vegetables ______ to be good for your health.", 
+    o: ["know", "are known", "is known", "were known"], 
+    c: 1, 
+    e: "<b>Reporting Passive:</b> We use 'is/are known to be' for general beliefs."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The package ______ to your door tomorrow.", 
+    o: ["will deliver", "is delivered", "will be delivered", "delivered"], 
+    c: 2, 
+    e: "<b>Future Simple Passive:</b> Predicting a future event for the object."
+},
+{ 
+    t: "Passive Voice", 
+    q: "Electricity ______ by many people in the 19th century.", 
+    o: ["is not used", "was not used", "has not been used", "did not use"], 
+    c: 1, 
+    e: "<b>Past Simple Passive (Negative):</b> Referring to a specific historical period."
+},
+{ 
+    t: "Passive Voice", 
+    q: "The winners ______ at the end of the show.", 
+    o: ["will announce", "will be announced", "are announced", "announced"], 
+    c: 1, 
+    e: "<b>Future Simple Passive:</b> Used for upcoming events."
+}
+
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I enjoy ______ to music while I study.", 
+    o: ["to listen", "listening", "listen", "listened"], 
+    c: 1, 
+    e: "<b>Gerund after certain verbs:</b> Some verbs like <i>enjoy, mind, suggest,</i> and <i>finish</i> are always followed by a gerund (-ing)."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "She decided ______ a new car next month.", 
+    o: ["buying", "to buy", "buy", "to buying"], 
+    c: 1, 
+    e: "<b>Infinitive after certain verbs:</b> Verbs like <i>decide, plan, hope,</i> and <i>promise</i> are followed by 'to + infinitive'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I'll never forget ______ the Eiffel Tower for the first time.", 
+    o: ["seeing", "to see", "see", "saw"], 
+    c: 0, 
+    e: "<b>Forget + Gerund:</b> Use the gerund when talking about a memory of a past event. Use 'forget + infinitive' when you mean you forgot to perform a task."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "He stopped ______ because he was out of breath.", 
+    o: ["to run", "running", "run", "to running"], 
+    c: 1, 
+    e: "<b>Stop + Gerund:</b> This means to end an activity. 'Stop + infinitive' would mean you paused one activity in order to do another."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "You should avoid ______ sweet things if you want to lose weight.", 
+    o: ["to eat", "eating", "eat", "to eating"], 
+    c: 1, 
+    e: "<b>Avoid + Gerund:</b> The verb 'avoid' is strictly followed by the -ing form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "We hope ______ you again soon.", 
+    o: ["seeing", "to see", "see", "to seeing"], 
+    c: 1, 
+    e: "<b>Hope + Infinitive:</b> 'Hope' describes a future intention, which usually requires the infinitive form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I don't mind ______ the dishes tonight.", 
+    o: ["doing", "to do", "do", "to doing"], 
+    c: 0, 
+    e: "<b>Mind + Gerund:</b> We always use the -ing form after 'mind' (especially in negative sentences or questions)."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "He managed ______ the heavy box up the stairs.", 
+    o: ["carrying", "to carry", "carry", "to carrying"], 
+    c: 1, 
+    e: "<b>Manage + Infinitive:</b> 'Manage' (meaning to succeed in doing something difficult) takes 'to + verb'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I suggested ______ to the beach, but they wanted to stay home.", 
+    o: ["to go", "going", "go", "to going"], 
+    c: 1, 
+    e: "<b>Suggest + Gerund:</b> 'Suggest' is never followed by an infinitive. You suggest <i>doing</i> something."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "He promised ______ me with my homework.", 
+    o: ["helping", "to help", "help", "to helping"], 
+    c: 1, 
+    e: "<b>Promise + Infinitive:</b> 'Promise' is a verb that looks toward a future action, hence the infinitive."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "It's no use ______ about it now; it's too late.", 
+    o: ["to cry", "crying", "cry", "to crying"], 
+    c: 1, 
+    e: "<b>Fixed Expression:</b> Phrases like 'It's no use...', 'It's no good...', and 'It's worth...' are followed by gerunds."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I am looking forward to ______ you.", 
+    o: ["meet", "to meet", "meeting", "met"], 
+    c: 2, 
+    e: "<b>Preposition + Gerund:</b> In 'look forward to', the 'to' is a preposition. Prepositions are always followed by gerunds, not infinitives."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I forgot ______ the oven, so the kitchen was very hot.", 
+    o: ["turning off", "to turn off", "turn off", "turned off"], 
+    c: 1, 
+    e: "<b>Forget + Infinitive:</b> This means you didn't remember to do a necessary task."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "They practicing ______ the piano every day.", 
+    o: ["playing", "to play", "play", "to playing"], 
+    c: 0, 
+    e: "<b>Practice + Gerund:</b> 'Practice' is followed by the -ing form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "She refused ______ the contract.", 
+    o: ["signing", "to sign", "sign", "to signing"], 
+    c: 1, 
+    e: "<b>Refuse + Infinitive:</b> 'Refuse' is followed by 'to + verb'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I remember ______ the door, but I should check it again.", 
+    o: ["locking", "to lock", "lock", "locked"], 
+    c: 0, 
+    e: "<b>Remember + Gerund:</b> Use this when you have a memory of doing something in the past."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "Please remember ______ the milk on your way home.", 
+    o: ["buying", "to buy", "buy", "to buying"], 
+    c: 1, 
+    e: "<b>Remember + Infinitive:</b> Use this when you are giving a reminder to perform a future task."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "He is interested in ______ photography.", 
+    o: ["learn", "to learn", "learning", "to learning"], 
+    c: 2, 
+    e: "<b>Preposition + Gerund:</b> After 'in', 'on', 'at', 'about', etc., we must use the gerund form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "She pretended ______ asleep when I walked in.", 
+    o: ["being", "to be", "be", "to being"], 
+    c: 1, 
+    e: "<b>Pretend + Infinitive:</b> 'Pretend' is followed by 'to + verb'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I can't afford ______ a new laptop right now.", 
+    o: ["buying", "to buy", "buy", "to buying"], 
+    c: 1, 
+    e: "<b>Afford + Infinitive:</b> We always use 'to + verb' after 'afford'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "It began ______ while we were walking.", 
+    o: ["to rain", "raining", "rain", "Both 'to rain' and 'raining'"], 
+    c: 3, 
+    e: "<b>Continuous Verbs:</b> Some verbs like <i>begin, start,</i> and <i>continue</i> can be followed by either a gerund or an infinitive with no change in meaning."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "He denied ______ the money.", 
+    o: ["stealing", "to steal", "steal", "to stealing"], 
+    c: 0, 
+    e: "<b>Deny + Gerund:</b> After 'deny' and 'admit', we use the -ing form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I would like ______ a cup of coffee.", 
+    o: ["drinking", "to drink", "drink", "to drinking"], 
+    c: 1, 
+    e: "<b>Would like + Infinitive:</b> While 'like' can take both, 'would like' specifically requires 'to + verb'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "We went to the park ______ some fresh air.", 
+    o: ["getting", "to get", "get", "for getting"], 
+    c: 1, 
+    e: "<b>Infinitive of Purpose:</b> Use 'to + verb' to explain <i>why</i> someone does something."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I am tired of ______ the same thing every day.", 
+    o: ["doing", "to do", "do", "to doing"], 
+    c: 0, 
+    e: "<b>Preposition + Gerund:</b> 'Of' is a preposition, so the following verb must be in the gerund form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "He failed ______ the entrance exam.", 
+    o: ["passing", "to pass", "pass", "to passing"], 
+    c: 1, 
+    e: "<b>Fail + Infinitive:</b> 'Fail' is always followed by 'to + verb'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "The movie is worth ______.", 
+    o: ["to watch", "watching", "watch", "to watching"], 
+    c: 1, 
+    e: "<b>Worth + Gerund:</b> 'Worth' is an adjective that is always followed by the -ing form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I learned ______ when I was six years old.", 
+    o: ["swimming", "to swim", "swim", "to swimming"], 
+    c: 1, 
+    e: "<b>Learn + Infinitive:</b> 'Learn' is followed by 'to + verb'."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "She quit ______ three years ago.", 
+    o: ["to smoke", "smoking", "smoke", "to smoking"], 
+    c: 1, 
+    e: "<b>Quit + Gerund:</b> Like 'stop', 'quit' means to end an activity and takes the -ing form."
+},
+{ 
+    t: "Gerunds & Infinitives", 
+    q: "I chose ______ in the front row.", 
+    o: ["sitting", "to sit", "sit", "to sitting"], 
+    c: 1, 
+    e: "<b>Choose + Infinitive:</b> 'Choose' is followed by 'to + verb'."
+}
+
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I am tired,' he said. <br>Reported: He said that he ______ tired.", 
+    o: ["is", "was", "has been", "had been"], 
+    c: 1, 
+    e: "<b>Tense Backshift:</b> When the reporting verb is in the past ('said'), the Present Simple in direct speech changes to the Past Simple in reported speech."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I have finished my homework,' she said. <br>Reported: She said that she ______ her homework.", 
+    o: ["finishes", "finished", "has finished", "had finished"], 
+    c: 3, 
+    e: "<b>Present Perfect to Past Perfect:</b> 'Have finished' shifts back one tense to 'had finished' when reported."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I will call you tomorrow,' he told me. <br>Reported: He told me that he ______ me the next day.", 
+    o: ["will call", "would call", "called", "would have called"], 
+    c: 1, 
+    e: "<b>Future Shifts:</b> In reported speech, 'will' changes to 'would'. Also, time expressions like 'tomorrow' change to 'the next day' or 'the following day'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Where do you live?' she asked. <br>Reported: She asked me where I ______.", 
+    o: ["live", "did live", "lived", "had lived"], 
+    c: 2, 
+    e: "<b>Reported Questions:</b> We use statement word order (Subject + Verb) and backshift the tense. We do not use auxiliary verbs like 'do' or 'did' in reported questions."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Don't shout!' the teacher said. <br>Reported: The teacher told us ______.", 
+    o: ["to not shout", "not to shout", "don't shout", "no shouting"], 
+    c: 1, 
+    e: "<b>Reported Imperatives:</b> For negative commands, use the structure 'told + person + not + to + infinitive'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I saw them yesterday,' he said. <br>Reported: He said that he ______ them the day before.", 
+    o: ["saw", "had seen", "has seen", "would see"], 
+    c: 1, 
+    e: "<b>Past Simple to Past Perfect:</b> When reporting a past action, we shift the Past Simple back to the Past Perfect ('had seen')."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Can you help me?' she asked. <br>Reported: She asked if I ______ help her.", 
+    o: ["can", "could", "will", "might"], 
+    c: 1, 
+    e: "<b>Modals in Reported Speech:</b> 'Can' shifts back to 'could' when reported in the past."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'We are playing football now,' they said. <br>Reported: They said they ______ football then.", 
+    o: ["are playing", "were playing", "played", "had played"], 
+    c: 1, 
+    e: "<b>Present Continuous to Past Continuous:</b> 'Are playing' becomes 'were playing', and 'now' changes to 'then'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I must leave,' he said. <br>Reported: He said that he ______ leave.", 
+    o: ["must", "would", "had to", "should"], 
+    c: 2, 
+    e: "<b>Must to Had to:</b> When reporting an obligation, 'must' usually changes to 'had to' in reported speech."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Do you like tea?' he asked. <br>Reported: He asked me ______ I liked tea.", 
+    o: ["that", "whether", "weather", "if that"], 
+    c: 1, 
+    e: "<b>Yes/No Questions:</b> Use 'if' or 'whether' to report questions that don't start with a 'Wh-' word."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I'll be there at 5,' she promised. <br>Reported: She promised that she ______ there at 5.", 
+    o: ["will be", "would be", "is", "was"], 
+    c: 1, 
+    e: "<b>Promise Reporting:</b> 'Will' shifts to 'would' after a reporting verb like 'promised'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'What are you doing?' he asked. <br>Reported: He asked me what I ______.", 
+    o: ["am doing", "was doing", "did", "had done"], 
+    c: 1, 
+    e: "<b>Continuous Questions:</b> The Present Continuous shifts to the Past Continuous with statement word order (I was doing)."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I've been waiting for ages,' she complained. <br>Reported: She complained that she ______ for ages.", 
+    o: ["has been waiting", "is waiting", "had been waiting", "was waiting"], 
+    c: 2, 
+    e: "<b>Perfect Continuous Shift:</b> Present Perfect Continuous ('have been waiting') shifts to Past Perfect Continuous ('had been waiting')."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Stay in bed,' the doctor said. <br>Reported: The doctor told me ______ in bed.", 
+    o: ["stay", "staying", "to stay", "that stay"], 
+    c: 2, 
+    e: "<b>Reporting Commands:</b> Positive imperatives change to 'to + infinitive'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I don't like this film,' he said. <br>Reported: He said that he didn't like ______ film.", 
+    o: ["this", "that", "the", "those"], 
+    c: 1, 
+    e: "<b>Pronoun/Determiner Shift:</b> In reported speech, 'this' usually changes to 'that' to indicate distance from the speaker."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'We went to Paris last year,' they told us. <br>Reported: They told us they ______ to Paris the year before.", 
+    o: ["went", "had gone", "have gone", "go"], 
+    c: 1, 
+    e: "<b>Past Simple to Past Perfect:</b> 'Went' shifts back to 'had gone'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Open the window,' she said to him. <br>Reported: She asked him ______ the window.", 
+    o: ["open", "to open", "opening", "that open"], 
+    c: 1, 
+    e: "<b>Reporting Requests:</b> Use 'asked + person + to + infinitive'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I may be late,' he said. <br>Reported: He said that he ______ be late.", 
+    o: ["may", "might", "can", "will"], 
+    c: 1, 
+    e: "<b>Modal Shift:</b> 'May' shifts back to 'might' in reported speech."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I'll help you,' he said. <br>Reported: He offered ______ me.", 
+    o: ["to help", "helping", "help", "that help"], 
+    c: 0, 
+    e: "<b>Reporting Verbs:</b> Some verbs like 'offer', 'refuse', and 'promise' are followed directly by the infinitive."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I am not coming,' she said. <br>Reported: She said she ______ coming.", 
+    o: ["isn't", "wasn't", "hasn't been", "wouldn't"], 
+    c: 1, 
+    e: "<b>Negative Continuous:</b> 'Am not' shifts back to 'was not'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Have you seen my keys?' he asked. <br>Reported: He asked me if I ______ his keys.", 
+    o: ["saw", "had seen", "have seen", "see"], 
+    c: 1, 
+    e: "<b>Reported Question Tense:</b> 'Have seen' (Present Perfect) shifts to 'had seen' (Past Perfect)."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I'll buy some bread,' she said. <br>Reported: She said she ______ some bread.", 
+    o: ["will buy", "bought", "would buy", "had bought"], 
+    c: 2, 
+    e: "<b>Future Shift:</b> 'Will' to 'would'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I'm living in London,' he said. <br>Reported: He said he ______ in London.", 
+    o: ["is living", "was living", "has lived", "lives"], 
+    c: 1, 
+    e: "<b>Continuous Shift:</b> Present Continuous to Past Continuous."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'You should work harder,' the boss said. <br>Reported: The boss said that I ______ work harder.", 
+    o: ["should", "must", "had to", "would"], 
+    c: 0, 
+    e: "<b>Modals that don't change:</b> 'Should', 'ought to', 'might', and 'could' usually do not change in reported speech."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I haven't been to Japan,' she said. <br>Reported: She said she ______ to Japan.", 
+    o: ["wasn't", "hasn't been", "hadn't been", "didn't go"], 
+    c: 2, 
+    e: "<b>Negative Perfect:</b> 'Hasn't been' shifts to 'hadn't been'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Are you hungry?' he asked me. <br>Reported: He asked me ______ I was hungry.", 
+    o: ["if", "that", "why", "when"], 
+    c: 0, 
+    e: "<b>Yes/No Question:</b> Use 'if' to link the reported question."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I'll see you here tomorrow,' he said. <br>Reported: He said he'd see me ______ the next day.", 
+    o: ["here", "there", "in this place", "nowhere"], 
+    c: 1, 
+    e: "<b>Place Shift:</b> 'Here' usually changes to 'there' in reported speech."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I've already eaten,' she said. <br>Reported: She said she ______ eaten.", 
+    o: ["already ate", "has already eaten", "had already eaten", "is already eating"], 
+    c: 2, 
+    e: "<b>Perfect Shift:</b> 'Have eaten' to 'had eaten'."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'Where is the station?' he asked. <br>Reported: He asked where the station ______.", 
+    o: ["is", "was", "has been", "did"], 
+    c: 1, 
+    e: "<b>Statement Order:</b> In reported questions, the verb ('was') comes after the subject ('the station')."
+},
+{ 
+    t: "Reported Speech", 
+    q: "Direct: 'I'm sorry I'm late,' she said. <br>Reported: She apologized ______ late.", 
+    o: ["to be", "for being", "that she is", "because being"], 
+    c: 1, 
+    e: "<b>Reporting Verbs with Gerunds:</b> Some verbs like 'apologize for', 'insist on', and 'admit to' are followed by a gerund (-ing)."
+}
+];
+
+let state = { user:"", mode:"", score:0, answers:{} };
+
+function startApp() {
+    state.user = document.getElementById('username-input').value;
+    if(!state.user) return alert("Please enter your name!");
+    document.getElementById('nav-user').innerText = state.user;
+    showView('mode-view');
+}
+
+function startQuiz(mode){
+    state.mode=mode;
+    showView('quiz-view');
+    document.getElementById('top-bar').classList.remove('hidden');
+    renderQuestions();
+}
+
+function renderQuestions(){
+    const area = document.getElementById('questions-area');
+    area.innerHTML = "";
+    questions.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+            <small style="color:var(--primary)">Topic: ${q.t}</small>
+            <p style="font-size:1.1rem;font-weight:500;margin:10px 0;">Q${i+1}: ${q.q}</p>
+            <div id="opts-${i}">${q.o.map((opt, oi) => `<button class="opt-btn" onclick="choose(${i}, ${oi}, this)">${opt}</button>`).join('')}</div>
+            
+            <div id="expl-${i}" class="hidden expl-box">
+                <span class="expl-title">Why is this correct?</span>
+                ${q.e}
+            </div>
+        `;
+        area.appendChild(div);
+    });
+}
+
+function choose(qi,oi,btn){
+    if(state.mode==='immediate'){
+        const q=questions[qi];
+        document.getElementById(`expl-${qi}`).classList.remove('hidden');
+        const btns=document.getElementById(`opts-${qi}`).querySelectorAll('button');
+        btns.forEach(b=>b.disabled=true);
+        if(oi===q.c){ btn.classList.add('correct'); state.score++; }
+        else{ btn.classList.add('wrong'); btns[q.c].classList.add('correct'); }
+        state.answers[qi]=oi;
+        document.getElementById('nav-score').innerText=state.score;
+    } else {
+        const btns=document.getElementById(`opts-${qi}`).querySelectorAll('button');
+        btns.forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.answers[qi]=oi;
+    }
+}
+
+function showFinalResult(){
+    let topicResults={};
+    state.score = 0;
+    
+    // Count questions per topic
+    questions.forEach(q => { 
+        if(!topicResults[q.t]) topicResults[q.t] = {correct:0, total:0}; 
+        topicResults[q.t].total++; 
+    });
+    
+    // Calculate total score and topic-specific score
+    questions.forEach((q, i) => { 
+        if(state.answers[i] === q.c){ 
+            state.score++; 
+            topicResults[q.t].correct++; 
+        } 
+    });
+
+    // --- FIX: Logic for Dynamic Ranking ---
+    const totalQuestions = questions.length;
+    const percentage = (state.score / totalQuestions) * 100;
+    let rank = "";
+
+    if (percentage >= 90) {
+        rank = "ENGLISH PRO";
+    } else if (percentage >= 70) {
+        rank = "ADVANCED";
+    } else if (percentage >= 40) {
+        rank = "INTERMEDIATE";
+    } else {
+        rank = "BEGINNER";
+    }
+    // --------------------------------------
+
+    const date = new Date().toLocaleDateString();
+
+    // Update UI Elements
+    document.getElementById('display-name-preview').innerText = state.user;
+    document.getElementById('display-rank-preview').innerText = rank;
+    document.getElementById('display-date-preview').innerText = date;
+
+    document.getElementById('display-name-pdf').innerText = state.user;
+    document.getElementById('display-rank-pdf').innerText = rank;
+    document.getElementById('display-date-pdf').innerText = date;
+
+    // Render Analysis Report
+    const analysisArea = document.getElementById('analysis-container');
+    analysisArea.innerHTML = "";
+    for(let topic in topicResults){
+        const data = topicResults[topic];
+        const topicPct = (data.correct / data.total) * 100;
+        const card = document.createElement('div');
+        card.className = `analysis-card ${topicPct >= 70 ? 'status-pass' : 'status-fail'}`;
+        card.innerHTML = `<strong>${topic}</strong><br>Score: ${data.correct}/${data.total}<br><small>${topicPct >= 70 ? 'Mastered ✅' : 'Needs Work 📖'}</small>`;
+        analysisArea.appendChild(card);
+    }
+
+    showView('result-view');
+    window.scrollTo(0, 0);
+}
+
+function generatePDF() {
+    const element = document.getElementById('certificate-for-pdf');
+    element.style.display = 'block';
+    const opt = {
+        margin: 0,
+        filename: `${state.user}_Certificate.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: [11, 8.5], orientation: 'landscape' }
+    };
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.style.display = 'none';
+    });
+}
+
+function showView(id){
+    ['auth-view','mode-view','quiz-view','result-view'].forEach(v=>document.getElementById(v).classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
