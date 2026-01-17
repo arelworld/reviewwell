@@ -2105,7 +2105,7 @@ function renderQuestions(){
             <div id="opts-${i}">${q.o.map((opt, oi) => `<button class="opt-btn" onclick="choose(${i}, ${oi}, this)">${opt}</button>`).join('')}</div>
             
             <div id="expl-${i}" class="hidden expl-box">
-                <span class="expl-title">Why is this correct?</span>
+               
                 ${q.e}
             </div>
         `;
