@@ -2077,6 +2077,10 @@ const questions = [
 }
 ];
 
+    questions.forEach(item => {
+    item.e = item.e.replace(/V3/g, "Past Participle (V3)");
+});
+
 let state = { user:"", mode:"", score:0, answers:{} };
 
 function startApp() {
